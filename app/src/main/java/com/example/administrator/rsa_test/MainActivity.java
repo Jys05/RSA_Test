@@ -11,7 +11,6 @@ import android.widget.TextView;
 import com.example.administrator.rsa_test.util.Base64Helper;
 import com.example.administrator.rsa_test.util.Base64Util;
 import com.example.administrator.rsa_test.util.MyUtil;
-import com.example.administrator.rsa_test.util.RSA.RSAUtil;
 import com.example.administrator.rsa_test.util.RsaHelper;
 import com.example.administrator.rsa_test.util.RsaUtil;
 
@@ -19,6 +18,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 
 public class MainActivity extends AppCompatActivity {
@@ -54,42 +54,66 @@ public class MainActivity extends AppCompatActivity {
         mBtnEncode.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                KeyPair mKeyPair = RsaUtil.generateRSAKeyPair(1024);
-                Log.i("===mTvJavaToCPrivate_XML===》", RsaHelper.encodePrivateKeyToXml(mKeyPair.getPrivate()));
-                System.out.print("mTvJavaToCPrivate_XML:" + RsaHelper.encodePrivateKeyToXml(mKeyPair.getPrivate()));
-                Log.i("===mTvJavaToCPublic_XML===》", RsaHelper.encodePublicKeyToXml(mKeyPair.getPublic()));
-                System.out.print("mTvJavaToCPublic_XML:" + RsaHelper.encodePublicKeyToXml(mKeyPair.getPublic()));
-                Log.i("===mTvJavaToCPrivate_Base64_2===》", Base64Util.encode(mKeyPair.getPrivate().getEncoded()));
-                System.out.print("mTvJavaToCPrivate_Base64_2:" + Base64Util.encode(mKeyPair.getPrivate().getEncoded()));
-                Log.i("===mTvJavaToCPublic_Base64_2===》", Base64Util.encode(mKeyPair.getPublic().getEncoded()));
-                System.out.print("mTvJavaToCPrivate_Base64_2:" + Base64Util.encode(mKeyPair.getPublic().getEncoded()));
-                mTvJavaToCPrivate.setText(RsaHelper.encodePrivateKeyToXml(mKeyPair.getPrivate()));
-                mTvJavaToCPublic.setText(RsaHelper.encodePublicKeyToXml(mKeyPair.getPublic()));
-                String planitText = "123";
+                String serverPK = "<RSAKeyValue><Modulus>wK/Vur4Za4RnS84HfJ+wTRtbzqox32lh5K9Y3lJWICC6WIDv4omw+qcWVKGuG9wS+pVAL5q9Pd4KsyLsbNiR7vlgdI+CoxPYmSeQDz0gL8REPa9Fw4ylD0eHlHXuMbBIrYJYyvRb/hYwRIgUOutYPFi7udUBnK+yV1VnP8LfXCc=</Modulus><Exponent>AQAB</Exponent></RSAKeyValue>";
+                PublicKey publicKey = RsaHelper.decodePublicKeyFromXml(serverPK);
+                String plaintText = "1234";
                 try {
-                    String rs1 = Base64Util.encode(RsaUtil.encryptByPublicKey(planitText.getBytes("UTF-8"), mKeyPair.getPublic().getEncoded()));
-                    Log.e("===加密1===>", rs1);
-                    String rs2 = Base64Util.encode(RsaUtil.encryptByPublicKey(planitText.getBytes("UTF-8"), mKeyPair.getPublic()));
-                    Log.e("===加密2===>", rs2);
-                    String rs1_d1 = new String(RsaUtil.decryptByPrivateKey(Base64Util.decode(rs1), mKeyPair.getPrivate().getEncoded()), "UTF-8");
-                    Log.e("===解密—rs1_d：===>", rs1_d1);
-                    String rs1_d2 = new String(RsaUtil.decryptByPrivateKey(Base64Util.decode(rs1), mKeyPair.getPrivate()), "UTF-8");
-                    Log.e("===解密—rs1_d2：===>", rs1_d2);
-                    String rs2_d1 = new String(RsaUtil.decryptByPrivateKey(Base64Util.decode(rs2), mKeyPair.getPrivate().getEncoded()), "UTF-8");
-                    Log.e("===解密—rs2_d：===>", rs2_d1);
-                    String rs2_d2 = new String(RsaUtil.decryptByPrivateKey(Base64Util.decode(rs2), mKeyPair.getPrivate()), "UTF-8");
-                    Log.e("===解密—rs2_d2：===>", rs2_d2);
-                    /******************* 另一个工具 *************************************/
-                    String pT = "oG5zQTpfJ+2o0NPnI+abkYidOYlXFFIHqf7g1Y5txmUifoIpiHgy1WDKsT+tnByR6kXVZd7NymD0powqTMrSB8nV30GlRGx8gAQ4k8o1iOw/M1Z5E7ydOiYhW901LwJJX6Z8oDCgDUcXGP7VeYMt4/GEl2F65sY2sz2jmivf5xQ=";
-                    String pK = "MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAMajgrAF07zq1iZIqYgff+QQrwS2+hmHy4c4pHITspBEJwH4pNRI4QU5+d07roLU9FkyubG9Thc7hwGYtnBIXvpTC2byQnxvvzHZf7OXUvIRCp2XR471hDUsDkJHp2wc3gXD0AKmzaPQMDWd33SNYz56tZrptbTfFtiXkyVXHNkXAgMBAAECgYAxDkaDJB1DhZd3gvBjTqwt7bTbbDjdvzyTW3i5N4YcvMgJY5eJWapAuS2s5kVVyDPEJ5PWglLbx/ayfT1pA2Z46kXnJr3AFvpC6Q3OB9XtBGhd42liipVKoScuIxpZ+0Yi7gc7eM2tg9k71A0uIoRRxmxVD1CzvUqju5unFiM3UQJBAOgO1ohnrqF+rlLVmiqBtU1PLtsAF5SDtQ0rfPTrJ/Zidw9Fa9hEk66CLPIIgcq+fTfKBi8r8xh6Gq2f5Irolu8CQQDbIf8bd3WVBSdm9KTf2xwMrLO/wS4FBzAQLc126tCMiGXQvZ99ZCgaG35QfuQ2n4/ynXPdxD9tVaCyHBT4xaBZAkEAmEdUZIKVSAiXYGgnGImxbZ/ugWvYDW84WgIVp6rAuJ/4vR6zHGIz/yoRUGpgsai7Bucdk8rlZUSLSTBJixYCJQJAbprHP97ZC4GRdMbw3Uij7MXS6GuiRclt+gyUU3yMDRLfiS/c65Z9I0hTRl/14phBOO0+SWY/uXjp5lyEPVjK6QJBAKwQKnDvO/whdpClK3GF3j3/dQKv78aUtWQbptEs9WnJoxn4dB5B5SpEvdOXmoEio3UcCptvxSpDaT8b43INryE=";
-                    byte[] pk_base64 = Base64Util.decode(pK);
-                    String result = new String(RsaUtil.decryptByPrivateKey(Base64Util.decode(pT), pk_base64), "UTF-8");
-                    Log.e("====>", result);
+                    String encodeText = Base64Util.encode(RsaUtil.encryptByPublicKey(plaintText.getBytes("UTF-8"), publicKey));
+                    Log.e("===密文==>" , encodeText);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         });
+
+        /****************************************以下这部分是：app端生成密钥对，服务器用公钥加密，app用私钥解密*********************************************/
+//        KeyPair mKeyPair = RsaUtil.generateRSAKeyPair(1024);
+//        Log.i("===mTvJavaToCPrivate_XML===》", RsaHelper.encodePrivateKeyToXml(mKeyPair.getPrivate()));
+//        System.out.print("mTvJavaToCPrivate_XML:" + RsaHelper.encodePrivateKeyToXml(mKeyPair.getPrivate()));
+//        Log.i("===mTvJavaToCPublic_XML===》", RsaHelper.encodePublicKeyToXml(mKeyPair.getPublic()));
+//        System.out.print("mTvJavaToCPublic_XML:" + RsaHelper.encodePublicKeyToXml(mKeyPair.getPublic()));
+//        Log.i("===mTvJavaToCPrivate_Base64_2===》", Base64Util.encode(mKeyPair.getPrivate().getEncoded()));
+//        System.out.print("mTvJavaToCPrivate_Base64_2:" + Base64Util.encode(mKeyPair.getPrivate().getEncoded()));
+//        Log.i("===mTvJavaToCPublic_Base64_2===》", Base64Util.encode(mKeyPair.getPublic().getEncoded()));
+//        System.out.print("mTvJavaToCPrivate_Base64_2:" + Base64Util.encode(mKeyPair.getPublic().getEncoded()));
+//        mTvJavaToCPrivate.setText(RsaHelper.encodePrivateKeyToXml(mKeyPair.getPrivate()));
+//        mTvJavaToCPublic.setText(RsaHelper.encodePublicKeyToXml(mKeyPair.getPublic()));
+//        String planitText = "123";
+//        try {
+//            String rs1 = Base64Util.encode(RsaUtil.encryptByPublicKey(planitText.getBytes("UTF-8"), mKeyPair.getPublic().getEncoded()));
+//            Log.e("===加密1===>", rs1);
+//            String rs2 = Base64Util.encode(RsaUtil.encryptByPublicKey(planitText.getBytes("UTF-8"), mKeyPair.getPublic()));
+//            Log.e("===加密2===>", rs2);
+//            String rs1_d1 = new String(RsaUtil.decryptByPrivateKey(Base64Util.decode(rs1), mKeyPair.getPrivate().getEncoded()), "UTF-8");
+//            Log.e("===解密—rs1_d：===>", rs1_d1);
+//            String rs1_d2 = new String(RsaUtil.decryptByPrivateKey(Base64Util.decode(rs1), mKeyPair.getPrivate()), "UTF-8");
+//            Log.e("===解密—rs1_d2：===>", rs1_d2);
+//            String rs2_d1 = new String(RsaUtil.decryptByPrivateKey(Base64Util.decode(rs2), mKeyPair.getPrivate().getEncoded()), "UTF-8");
+//            Log.e("===解密—rs2_d：===>", rs2_d1);
+//            String rs2_d2 = new String(RsaUtil.decryptByPrivateKey(Base64Util.decode(rs2), mKeyPair.getPrivate()), "UTF-8");
+//            Log.e("===解密—rs2_d2：===>", rs2_d2);
+//            String pT = "oG5zQTpfJ+2o0NPnI+abkYidOYlXFFIHqf7g1Y5txmUifoIpiHgy1WDKsT+tnByR6kXVZd7NymD0powqTMrSB8nV30GlRGx8gAQ4k8o1iOw/M1Z5E7ydOiYhW901LwJJX6Z8oDCgDUcXGP7VeYMt4/GEl2F65sY2sz2jmivf5xQ=";
+//            String pK = "MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAMajgrAF07zq1iZIqYgff+QQrwS2+hmHy4c4pHITspBEJwH4pNRI4QU5+d07roLU9FkyubG9Thc7hwGYtnBIXvpTC2byQnxvvzHZf7OXUvIRCp2XR471hDUsDkJHp2wc3gXD0AKmzaPQMDWd33SNYz56tZrptbTfFtiXkyVXHNkXAgMBAAECgYAxDkaDJB1DhZd3gvBjTqwt7bTbbDjdvzyTW3i5N4YcvMgJY5eJWapAuS2s5kVVyDPEJ5PWglLbx/ayfT1pA2Z46kXnJr3AFvpC6Q3OB9XtBGhd42liipVKoScuIxpZ+0Yi7gc7eM2tg9k71A0uIoRRxmxVD1CzvUqju5unFiM3UQJBAOgO1ohnrqF+rlLVmiqBtU1PLtsAF5SDtQ0rfPTrJ/Zidw9Fa9hEk66CLPIIgcq+fTfKBi8r8xh6Gq2f5Irolu8CQQDbIf8bd3WVBSdm9KTf2xwMrLO/wS4FBzAQLc126tCMiGXQvZ99ZCgaG35QfuQ2n4/ynXPdxD9tVaCyHBT4xaBZAkEAmEdUZIKVSAiXYGgnGImxbZ/ugWvYDW84WgIVp6rAuJ/4vR6zHGIz/yoRUGpgsai7Bucdk8rlZUSLSTBJixYCJQJAbprHP97ZC4GRdMbw3Uij7MXS6GuiRclt+gyUU3yMDRLfiS/c65Z9I0hTRl/14phBOO0+SWY/uXjp5lyEPVjK6QJBAKwQKnDvO/whdpClK3GF3j3/dQKv78aUtWQbptEs9WnJoxn4dB5B5SpEvdOXmoEio3UcCptvxSpDaT8b43INryE=";
+//            byte[] pk_base64 = Base64Util.decode(pK);
+//            String result = new String(RsaUtil.decryptByPrivateKey(Base64Util.decode(pT), pk_base64), "UTF-8");
+//            Log.e("====>", result);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+        /*************************************************************************************/
+
+        /*********************以下这一部分是：服务端生成秘钥对，app端用公钥加密，服务端用私钥解密**************************************************************/
+//        String serverPK = "<RSAKeyValue><Modulus>wK/Vur4Za4RnS84HfJ+wTRtbzqox32lh5K9Y3lJWICC6WIDv4omw+qcWVKGuG9wS+pVAL5q9Pd4KsyLsbNiR7vlgdI+CoxPYmSeQDz0gL8REPa9Fw4ylD0eHlHXuMbBIrYJYyvRb/hYwRIgUOutYPFi7udUBnK+yV1VnP8LfXCc=</Modulus><Exponent>AQAB</Exponent></RSAKeyValue>";
+//        PublicKey publicKey = RsaHelper.decodePublicKeyFromXml(serverPK);
+//        String plaintText = "1234";
+//        try {
+//            String encodeText = Base64Util.encode(RsaUtil.encryptByPublicKey(plaintText.getBytes("UTF-8"), publicKey));
+//            Log.e("===密文==>" , encodeText);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+        /***********************************************************************************/
+
 
         mBtnDecode.setOnClickListener(new View.OnClickListener() {
             @Override
